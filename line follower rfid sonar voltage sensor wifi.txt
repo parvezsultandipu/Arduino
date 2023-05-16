@@ -1,0 +1,292 @@
+#include<MFRC522.h>
+#include<SPI.h>
+#define RST_PIN         48          // Configurable, see typical pin layout above
+#define SS_PIN          53         // Configurable, see typical pin layout above
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+String ssid = "dhong";
+String password = "01521439838";
+String server = "192.168.0.2"; // www.example.com
+
+String uri = "/SS_IOT/post-esp-data.php";// our example is /Serial1post.php
+
+#define inA 4
+#define inB 5
+#define inC 6
+#define inD 7
+int th[10] = {500, 500, 500, 500, 500};
+int sen_pins[5] = {A4, A3, A2, A1, A0};
+
+void wheel(int lm, int rm);
+
+int i, sen[10], s[10], lastSensor, lastError;
+
+int base_L = 180;
+int base_R = 180;
+float kp = 8.0;
+float kd = 15.0;
+void setup()
+{
+  Serial1.begin(115200);
+  reset();
+
+  connectWifi();
+
+  init_Mfrc522();
+  other_init();
+}
+void loop()
+{
+  if (!mfrc522.PICC_IsNewCardPresent())
+  {
+    return;
+  }
+  if (!mfrc522.PICC_ReadCardSerial())
+  {
+    return;
+  }
+  String uid = "";
+  // Serial.println();
+  //Serial.print("UID=");
+  for (int i = 0; i < mfrc522.uid.size; i++)
+  {
+    // Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+    // Serial.print(mfrc522.uid.uidByte[i], HEX);
+    uid.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
+    uid.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  uid.toUpperCase();
+  if (uid == "C91DC67E") {
+    String d = "&sensor=RFID&location=Dhaka&value1=10&value2=10&value3=10";
+    httppost(d);
+  }
+
+  // line_follow();
+  // wheel(255, 255);
+}
+
+void reset() {
+
+  Serial1.println("AT+RST");
+
+  delay(1000);
+
+  if (Serial1.find("OK") ) Serial.println("Module Reset");
+
+}
+
+//connect to your wifi network
+
+void connectWifi() {
+
+  String cmd = "AT+CWJAP=\"" + ssid + "\",\"" + password + "\"";
+
+  Serial1.println(cmd);
+
+  delay(4000);
+
+  if (Serial1.find("OK")) {
+
+    Serial.println("Connected!");
+
+  }
+
+  else {
+
+    connectWifi();
+
+    Serial.println("Cannot connect to wifi");
+  }
+
+}
+
+void httppost (String data) {
+
+  Serial1.println("AT+CIPSTART=\"TCP\",\"" + server + "\",8080");//start a TCP connection.
+
+  if ( Serial1.find("OK")) {
+
+    Serial.println("TCP connection ready");
+
+  } delay(1000);
+
+  String postRequest =
+
+    "POST " + uri + " HTTP/1.0\r\n" +
+
+    "Host: " + server + "\r\n" +
+
+    "Accept: *" + "/" + "*\r\n" +
+
+    "Content-Length: " + data.length() + "\r\n" +
+
+    "Content-Type: application/x-www-form-urlencoded\r\n" +
+
+    "\r\n" + data;
+
+  String sendCmd = "AT+CIPSEND=";//determine the number of caracters to be sent.
+
+  Serial1.print(sendCmd);
+
+  Serial1.println(postRequest.length() );
+
+  delay(500);
+
+  if (Serial1.find(">")) {
+    Serial.println("Sending.."); Serial1.print(postRequest);
+
+    if ( Serial1.find("SEND OK")) {
+      Serial.println("Packet sent");
+
+      while (Serial1.available()) {
+
+        String tmpRSerial1 = Serial1.readString();
+
+        Serial.println(tmpRSerial1);
+
+      }
+
+      // close the connection
+
+      Serial1.println("AT+CIPCLOSE");
+
+    }
+
+  }
+
+
+}
+
+void other_init()
+{
+  lastSensor = 0;
+  lastError = 0;
+  Serial.begin(9600);
+}
+
+void mot_init()
+{
+
+  pinMode(inA, OUTPUT);
+  pinMode(inB, OUTPUT);
+  pinMode(inC, OUTPUT);
+  pinMode(inD, OUTPUT);
+
+
+}
+
+void wheel(int lm, int rm)
+{
+  if (lm == 0)
+  {
+
+    analogWrite(inA, 0);
+    analogWrite(inB, 0);
+
+  }
+  if (lm > 0)
+  {
+
+    analogWrite(inA, abs(rm));
+    analogWrite(inB, 0);
+  }
+  else if (lm < 0)
+  {
+
+    analogWrite(inA, 0);
+    analogWrite(inB, abs(rm));
+  }
+
+
+  if (rm == 0)
+  {
+
+    analogWrite(inC, 0);
+    analogWrite(inD, 0);
+
+
+  }
+  if (rm > 0)
+  {
+    analogWrite(inC, abs(lm));
+    analogWrite(inD, 0);
+
+  }
+  else if (rm < 0)
+  {
+
+    analogWrite(inC, 0);
+    analogWrite(inD, abs(lm));
+
+  }
+  if (lm > 254) lm = 254;
+  if (lm < -254) lm = -254;
+  if (rm > 254) rm = 254;
+  if (rm < -254) rm = -254;
+
+
+
+
+}
+
+int readSensor()
+{
+  for (i = 0; i < 5; i++)
+  {
+    sen[i] = analogRead(sen_pins[i]);
+    if (sen[i] > th[i])
+    {
+      s[i] = 0;
+    }
+    else {
+      s[i] = 1;
+    }
+  }
+
+  int error, sum;
+  sum = s[0] + s[1] + s[2] + s[3] + s[4] + s[5] + s[6] + s[7] + s[8] + s[9];
+  if (sum != 0)
+  {
+    error = (s[0] * 10 + s[1] * 20 + s[2] * 30 + s[3] * 40 + s[4] * 50 + s[5] * 60 + s[6] * 70 + s[7] * 80 + s[8] * 90 + s[9] * 100) / sum - 55;
+  }
+  else
+  {
+    error = 420;
+  }
+
+  if (s[0] == 1) lastSensor = 1;
+  else if (s[4] == 1) lastSensor = 2;
+  Serial.println(error);
+  return error;
+}
+
+
+void line_follow()
+{
+  int error, corr;
+  float p, d;
+  error = readSensor();
+  if (error == 420)
+  {
+    if (lastSensor == 1) wheel(-180, 180);
+    else if (lastSensor == 2) wheel(180, -180);
+  }
+  else
+  {
+    p = kp * error;
+    d = kd * (error - lastError);
+    corr = p + d;
+    //  Serial.println(corr);
+    wheel(base_L + corr, base_R - corr);
+    if ((error - lastError) != 0) delay(5);
+    lastError = error;
+  }
+
+}
+
+void init_Mfrc522() {
+  SPI.begin();      // Init SPI bus
+  mfrc522.PCD_Init();   // Init MFRC522
+  mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader details
+  mot_init();
+
+};

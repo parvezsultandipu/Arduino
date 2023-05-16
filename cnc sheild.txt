@@ -1,0 +1,43 @@
+#define EN        8       // stepper motor enable, low level effective
+#define X_DIR     5       //X axis, stepper motor direction control 
+#define Y_DIR     6       //y axis, stepper motor direction control
+#define Z_DIR     7       //zaxis, stepper motor direction control
+#define X_STP     2       //x axis, stepper motor control
+#define Y_STP     3       //y axis, stepper motor control
+#define Z_STP     4       //z axis, stepper motor control
+/*
+// Function: step   -control the direction and number of steps of the stepper motor
+// Parameter: dir  -direction control, dirPin corresponds to DIR pin, stepperPin corresponds to 
+
+
+step pin, steps is the number of steps.
+// no return value
+*/
+void step(boolean dir, byte dirPin, byte stepperPin, int steps)
+{
+  digitalWrite(dirPin, dir);
+  delay(50);
+  for (int i = 0; i < steps; i++) {
+    digitalWrite(stepperPin, LOW);
+    delayMicroseconds(800);  
+    digitalWrite(stepperPin, HIGH);
+    delayMicroseconds(800);  
+  }
+}
+void setup(){// set the IO pins for the stepper motors as output 
+  pinMode(X_DIR, OUTPUT); pinMode(X_STP, OUTPUT);
+  pinMode(Y_DIR, OUTPUT); pinMode(Y_STP, OUTPUT);
+  pinMode(Z_DIR, OUTPUT); pinMode(Z_STP, OUTPUT);
+  pinMode(EN, OUTPUT);
+  digitalWrite(EN, LOW);
+}
+void loop(){
+  step(false, X_DIR, X_STP, 200); // x axis motor rotates CCW for 1 circle, as in 200 steps
+  step(false, Y_DIR, Y_STP, 200); // y axis motor rotates CCW for 1 circle, as in 200 steps
+  //step(false, Z_DIR, Z_STP, 100); // z axis motor rotates CCW for 1 circle, as in 200 steps
+  delay(1000);
+  step(true, X_DIR, X_STP, 200); // X axis motor rotates CW for 1 circle, as in 200 steps
+  step(true, Y_DIR, Y_STP, 200); // y axis motor rotates CW for 1 circle, as in 200 steps
+  //step(true, Z_DIR, Z_STP, 100); // z axis motor rotates CW for 1 circle, as in 200 steps
+  delay(1000);
+}

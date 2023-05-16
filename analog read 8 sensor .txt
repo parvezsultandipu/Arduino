@@ -1,0 +1,42 @@
+
+int th[8] = {467, 485, 448, 406, 382, 492, 451, 429};
+int sen_pins[8] = {A7, A6, A5, A4, A3, A2, A1, A0};
+int sen[8]; int s[8];
+void setup() {
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+  int i;
+  for (i = 0; i < 8; i++)
+  {
+    sen[i] = analogRead(sen_pins[i]);
+    if (sen[i] < th[i])
+    {
+      s[i] = 1;
+    }
+    else {
+      s[i] = 0;
+    }
+  }
+  for (i = 0; i < 8; i++)
+  {
+
+    Serial.print(sen[i]);
+    Serial.print(" ");
+
+  }
+  Serial.println();
+
+  for (i = 0; i < 8; i++)
+  {
+
+    Serial.print(s[i]);
+    Serial.print(" ");
+
+  }
+  Serial.println();
+  delay(1000);
+}

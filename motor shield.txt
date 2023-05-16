@@ -1,0 +1,22 @@
+int ENA = 6;
+int INA = 7;
+int INB = 8;
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(ENA, OUTPUT);
+  pinMode(INA, OUTPUT);
+  pinMode(INB, OUTPUT);
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+  digitalWrite(A0, HIGH);
+  digitalWrite(A1, HIGH);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  analogWrite(ENA, 255);
+  digitalWrite(INA, HIGH);
+  digitalWrite(INB, LOW);
+
+}

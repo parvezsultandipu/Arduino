@@ -1,0 +1,120 @@
+//#include <Servo.h>
+//Servo myservo;
+#define EN        8       // stepper motor enable, low level effective
+#define X_DIR     5       //X axis, stepper motor direction control 
+#define Y_DIR     6       //y axis, stepper motor direction control
+#define Z_DIR     7       //zaxi3s, stepper motor direction control
+#define X_STP     2       //x axis, stepper motor control
+#define Y_STP     3       //y axis, stepper motor control
+#define Z_STP     4       //z axis, stepper motor control
+int st = 200;
+int incomingByte=0;
+void left();
+void right();
+void forward();
+void backward();
+void up();
+void down();
+void step(boolean dir, byte dirPin, byte stepperPin, int steps)
+{
+  digitalWrite(dirPin, dir);
+  delay(50);
+  for (int i = 0; i < steps; i++) {
+    digitalWrite(stepperPin, HIGH);
+    delayMicroseconds(800);  
+    digitalWrite(stepperPin, LOW);
+    delayMicroseconds(800);  
+  }
+
+}
+void setup() {
+ // myservo.attach(11);
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+   pinMode(X_DIR, OUTPUT); pinMode(X_STP, OUTPUT);
+  pinMode(Y_DIR, OUTPUT); pinMode(Y_STP, OUTPUT);
+  pinMode(Z_DIR, OUTPUT); pinMode(Z_STP, OUTPUT);
+  pinMode(EN, OUTPUT);
+  digitalWrite(EN, LOW);
+}
+
+void loop() {
+if (Serial.available() > 0) {
+    incomingByte = Serial.read();
+    }
+  switch(incomingByte)
+  {
+     
+     case 'B':
+      
+     {  backward();
+       
+       Serial.println("Forward\n");
+       incomingByte='*';}
+     break;
+    
+      case 'F':
+       
+    {   forward();
+       Serial.println("Backward\n");
+       incomingByte='*';}
+     break;
+     
+     case 'R':
+     // turn right
+     {  
+       right(); 
+       Serial.println("Rotate Right\n");
+       incomingByte='*';}
+     break;
+       case 'L':
+      { 
+       left();     
+       Serial.println("Rotate Left\n");
+       incomingByte='*';}
+     break;
+     case 'S':
+      { 
+        // myservo.write(0);   
+       Serial.println("Rotate Left\n");
+       incomingByte='*';}
+     break;
+     case 'O':
+      { 
+       //myservo.write(30);     
+       Serial.println("Rotate Left\n");
+       incomingByte='*';}
+     break;
+     
+  }
+
+}
+
+void backward(){
+step(false, Y_DIR, Y_STP, st);
+
+  };
+void forward(){
+  step(true, Y_DIR, Y_STP, st);
+
+  };
+void right(){
+
+step(false, Z_DIR, Z_STP, st);
+  
+  };
+void left(){
+
+  step(true, Z_DIR, Z_STP, st);
+  
+  };
+  void up(){
+    //step(false, Z_DIR, Z_STP, st);
+
+    
+    };
+void down(){
+  //step(true, Z_DIR, Z_STP, st);
+
+  
+  };

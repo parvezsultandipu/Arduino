@@ -1,0 +1,62 @@
+#include <Servo.h>
+Servo myservo;
+#define EN        8       // stepper motor enable, low level effective
+#define X_DIR     5       //X axis, stepper motor direction control 
+#define Y_DIR     6       //y axis, stepper motor direction control
+#define Z_DIR     7       //zaxis, stepper motor direction control
+#define X_STP     2       //x axis, stepper motor control
+#define Y_STP     3       //y axis, stepper motor control
+#define Z_STP     4       //z axis, stepper motor control
+/*
+// Function: step   -control the direction and number of steps of the stepper motor
+// Parameter: dir  -direction control, dirPin corresponds to DIR pin, stepperPin corresponds to 
+
+
+step pin, steps is the number of steps.
+// no return value
+*/
+void step(boolean dir, byte dirPin, byte stepperPin, int steps)
+{
+  digitalWrite(dirPin, dir);
+  delay(50);
+  for (int i = 0; i < steps; i++) {
+    digitalWrite(stepperPin, LOW);
+    delayMicroseconds(800);  
+    digitalWrite(stepperPin, HIGH);
+    delayMicroseconds(800);  
+  }
+}
+void setup(){ 
+  myservo.attach(11);
+  pinMode(X_DIR, OUTPUT); pinMode(X_STP, OUTPUT);
+  pinMode(Y_DIR, OUTPUT); pinMode(Y_STP, OUTPUT);
+  pinMode(Z_DIR, OUTPUT); pinMode(Z_STP, OUTPUT);
+  pinMode(EN, OUTPUT);
+  digitalWrite(EN, LOW);
+}
+void loop(){
+  
+//servo 30 free - 0 grip
+ // step(true, Y_DIR, Y_STP, 600);//true-backward 
+ // delay(1000); 
+  //step(false, Z_DIR, Z_STP, 600);//false -up 
+ // delay(1000); 
+ // step(false, Y_DIR, Y_STP, 600);//flase-forward
+  //delay(1000); 
+  //step(true, Z_DIR, Z_STP, 600);//true-down
+  //delay(1000); 
+   
+//myservo.write(30);
+step(false, Y_DIR, Y_STP, 800);
+delay(1000);
+//myservo.write(30);
+//delay(1000);
+myservo.write(0);
+delay(1000);
+ step(true, Y_DIR, Y_STP, 800);
+ delay(1000);
+myservo.write(30);
+delay(1000);
+
+
+}

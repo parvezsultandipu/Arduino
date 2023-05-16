@@ -1,0 +1,48 @@
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_BMP280.h>
+#include "DHT.h"
+
+#define DHTPIN 2     // what digital pin we're connected to
+
+#define DHTTYPE DHT22 
+DHT dht(DHTPIN, DHTTYPE);
+Adafruit_BMP280 bmp; // I2C
+String data;
+void setup() {
+ dht.begin();
+  if (!bmp.begin()) {
+    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
+    while (1);
+  }
+    /* Default settings from datasheet. */
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+
+}
+
+void loop() {
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();//Celsius
+    if (isnan(h) || isnan(t)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+   Serial.print("Humidity: ");
+  Serial.print(h);
+  Serial.print(" %\t");
+  Serial.print("Temperature: ");
+  Serial.print(t);
+  Serial.print(" *C ");
+   Serial.print(F("Pressure = "));
+    Serial.print(bmp.readPressure());
+    Serial.print(" Pa ");
+
+    Serial.print(F("Approx altitude = "));
+    Serial.print(bmp.readAltitude(1013.25)); /* Adjusted to local forecast! */
+    Serial.println(" m");
+data = "Humidity: " + String(h)+ "%\t"+ " Temperature: " + String(t)+" *C "+ "Pressure :"+String(bmp.readPressure()) + " Pa " + "Approx altitude : "+String(bmp.readAltitude(1013.25))+" m";
+}

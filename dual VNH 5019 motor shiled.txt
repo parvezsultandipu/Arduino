@@ -1,0 +1,207 @@
+#include "DualVNH5019MotorShield.h"
+
+DualVNH5019MotorShield md;
+int incomingByte=0; // for incoming serial data
+int speed_min = 200; //the minimum "speed" the motors will turn - take it lower and motors don't turn
+int speed_max = 400; //
+
+int speed_left = speed_min; // set both motors to maximum speed
+int speed_right = speed_min;
+
+void left();
+void right();
+void forward();
+void backward();
+void forward_left();
+void forward_right();
+void back_left();
+void back_right();
+void setup() {
+  // put your setup code here, to run once:
+Serial.begin(9600);
+  md.init();
+}
+void loop(){
+if (Serial.available() > 0) {
+    incomingByte = Serial.read();
+    }
+  switch(incomingByte)
+  {
+     case 'S':
+      {
+        stopo();
+       Serial.println("Stop\n"); 
+       incomingByte='*';}
+     break;
+     
+     case 'F':
+      
+     {  forward();
+       
+      Serial.println("Forward\n");
+       incomingByte='*';}
+     break;
+    
+      case 'B':
+       
+    {   backward();
+      // Serial.println("Backward\n");
+       incomingByte='*';}
+     break;
+     
+     case 'R':
+     // turn right
+     {  
+       right(); 
+       Serial.println("Rotate Right\n");
+       incomingByte='*';}
+     break;
+       case 'L':
+      { 
+       left();     
+       Serial.println("Rotate Left\n");
+       incomingByte='*';}
+     break;
+     case '1':
+        
+      { speed_left = 40; 
+       speed_right = 40;
+       Serial.println("Speed 1\n");
+       incomingByte='*';}
+     break;
+    case '2':
+      { 
+        speed_left = 80; 
+       speed_right = 80;
+       Serial.println("Speed 2 \n");
+       incomingByte='*';}
+     break;
+    case '3':
+      { 
+        speed_left = 120; 
+       speed_right = 120;
+       Serial.println("Speed 3 \n");
+       incomingByte='*';}
+     break; 
+        case '4':
+      { 
+        speed_left = 160; 
+       speed_right = 160;
+       Serial.println("Speed 4 \n");
+       incomingByte='*';}
+     break; 
+        case '5':
+      { 
+        speed_left = 200; 
+       speed_right = 200;
+       Serial.println("Speed 5 \n");
+       incomingByte='*';}
+     break; 
+        case '6':
+      { 
+        speed_left = 240; 
+       speed_right = 240;
+       Serial.println("Speed 6 \n");
+       incomingByte='*';}
+     break; 
+        case '7':
+      { 
+        speed_left = 280; 
+       speed_right = 280;
+       Serial.println("Speed 7 \n");
+       incomingByte='*';}
+     break; 
+        case '8':
+      { 
+        speed_left = 320; 
+       speed_right = 320;
+       Serial.println("Speed 8 \n");
+       incomingByte='*';}
+     break; 
+        case '9':
+      { 
+        speed_left = 360; 
+       speed_right = 360;
+       Serial.println("Speed 9 \n");
+       incomingByte='*';}
+     break; 
+        case 'q':
+      { 
+        speed_left = 400; 
+       speed_right = 400;
+       Serial.println("Speed full \n");
+       incomingByte='*';}
+     break; 
+        case 'G':
+      { 
+       forward_left();
+       Serial.println("Speed full \n");
+       incomingByte='*';}
+     break;
+      case 'I':
+      { 
+       forward_right();
+       Serial.println("Speed full \n");
+       incomingByte='*';}
+     break;
+      case 'H':
+      { 
+       back_left();
+       Serial.println("Speed full \n");
+       incomingByte='*';}
+     break;
+      case 'J':
+      { 
+       back_right();
+       Serial.println("Speed full \n");
+       incomingByte='*';}
+     break;      
+  }
+
+  
+}
+void right(){
+md.setM1Speed(speed_left);
+md.setM2Speed(speed_right);
+  };
+void left(){
+  
+md.setM1Speed(-speed_left);
+md.setM2Speed(-speed_right);
+
+  };
+void forward(){
+
+md.setM1Speed(-speed_left);
+md.setM2Speed(speed_right);
+  };
+void backward(){
+
+md.setM1Speed(speed_left);
+md.setM2Speed(-speed_right);
+  };
+void stopo(){
+
+md.setM1Speed(0);
+md.setM2Speed(0);
+  };
+void forward_left(){
+
+md.setM1Speed(speed_left);
+md.setM2Speed(0);
+  };
+void forward_right(){
+ 
+md.setM1Speed(0);
+md.setM2Speed(speed_right);
+  };
+void back_left(){
+
+md.setM1Speed(-speed_left);
+md.setM2Speed(0);
+  };
+void back_right(){
+
+md.setM1Speed(0);
+md.setM2Speed(-speed_right);
+  };

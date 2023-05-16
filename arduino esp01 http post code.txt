@@ -1,0 +1,203 @@
+//#include "SoftwareSerial.h"
+#include<MFRC522.h>
+#include<SPI.h>
+
+
+#define RST_PIN         48          // Configurable, see typical pin layout above
+#define SS_PIN          53         // Configurable, see typical pin layout above
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+
+
+String ssid = "dhong";
+
+String password = "01521439838";
+
+//SoftwareSerial Serial1(PB12, PB13);// RX, TX
+//SoftwareSerial Serial1(22, 23);// RX, TX
+
+
+
+String server = "192.168.0.2"; // www.example.com
+
+String uri = "/SS_IOT/post-esp-data.php";// our example is /Serial1post.php
+
+
+void setup() {
+
+  SPI.begin();
+   mfrc522.PCD_Init();
+
+  Serial1.begin(115200);
+
+  Serial.begin(115200);
+
+  reset();
+
+  connectWifi();
+ // httpGET();
+
+}
+
+//reset the Serial18266 module
+
+void reset() {
+
+  Serial1.println("AT+RST");
+
+  delay(1000);
+
+  if (Serial1.find("OK") ) Serial.println("Module Reset");
+
+}
+
+//connect to your wifi network
+
+void connectWifi() {
+
+  String cmd = "AT+CWJAP=\"" + ssid + "\",\"" + password + "\"";
+
+  Serial1.println(cmd);
+
+  delay(4000);
+
+  if (Serial1.find("OK")) {
+
+    Serial.println("Connected!");
+
+  }
+
+  else {
+
+    connectWifi();
+
+    Serial.println("Cannot connect to wifi");
+  }
+
+}
+
+
+
+
+void loop () {
+    if (!mfrc522.PICC_IsNewCardPresent())
+    {
+      return;
+    }
+    if (!mfrc522.PICC_ReadCardSerial())
+    {
+      return;
+    }
+    String uid = "";
+   // Serial.println();
+    //Serial.print("UID=");
+    for (int i = 0; i < mfrc522.uid.size; i++)
+    {
+     // Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+     // Serial.print(mfrc522.uid.uidByte[i], HEX);
+      uid.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
+      uid.concat(String(mfrc522.uid.uidByte[i], HEX));
+    }
+    uid.toUpperCase();
+    if (uid == "C91DC67E") {
+    String d = "&sensor=RFID&location=Dhaka&value1=10&value2=10&value3=10";
+    httppost(d);
+     }
+  
+
+}
+
+void httppost (String data) {
+
+  Serial1.println("AT+CIPSTART=\"TCP\",\"" + server + "\",8080");//start a TCP connection.
+
+  if ( Serial1.find("OK")) {
+
+    Serial.println("TCP connection ready");
+
+  } delay(1000);
+
+  String postRequest =
+
+    "POST " + uri + " HTTP/1.0\r\n" +
+
+    "Host: " + server + "\r\n" +
+
+    "Accept: *" + "/" + "*\r\n" +
+
+    "Content-Length: " + data.length() + "\r\n" +
+
+    "Content-Type: application/x-www-form-urlencoded\r\n" +
+
+    "\r\n" + data;
+
+  String sendCmd = "AT+CIPSEND=";//determine the number of caracters to be sent.
+
+  Serial1.print(sendCmd);
+
+  Serial1.println(postRequest.length() );
+
+  delay(500);
+
+  if (Serial1.find(">")) {
+    Serial.println("Sending.."); Serial1.print(postRequest);
+
+    if ( Serial1.find("SEND OK")) {
+      Serial.println("Packet sent");
+
+      while (Serial1.available()) {
+
+        String tmpRSerial1 = Serial1.readString();
+
+        Serial.println(tmpRSerial1);
+
+      }
+
+      // close the connection
+
+      Serial1.println("AT+CIPCLOSE");
+
+    }
+
+  }
+
+
+}
+
+void httpGET() {
+
+  Serial1.println("AT+CIPSTART=\"TCP\",\"" + server + "\",8080");//start a TCP connection.
+
+  if ( Serial1.find("OK")) {
+
+    Serial.println("TCP connection ready");
+
+  } delay(1000);
+  String getURl = "/SS_IOT/getData.php?field=value1";
+  String GETRequest =
+    "GET " + getURl + "\r\n"+
+    "Host: "+server+"\r\n";
+   
+    
+  String sendCmd = "AT+CIPSEND=";//determine the number of caracters to be sent.
+
+  Serial1.print(sendCmd);
+
+  Serial1.println(GETRequest.length());
+
+  delay(1000);
+
+  Serial1.print(GETRequest);
+
+  if(Serial1.available()) {
+
+    String tmpRSerial1 = Serial1.readString();
+
+    Serial.println(tmpRSerial1);
+
+  }
+
+
+
+
+}

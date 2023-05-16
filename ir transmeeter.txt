@@ -1,0 +1,50 @@
+#include <IRremote.h>
+
+IRsend irsend;
+
+const int b1  = 8;  //
+const int b2  = 10;  //
+const int b3  = 9;  //
+const int b4  = 7;  //
+const int b5  = 11;
+
+
+void setup() {
+  pinMode(b1, INPUT);
+  pinMode(b2, INPUT);
+  pinMode(b3, INPUT);
+  pinMode(b4, INPUT);
+  pinMode(b5, INPUT);
+}
+
+void loop() {
+
+  if (digitalRead(b1) == HIGH) {
+//delay(100);
+    irsend.sendNEC(0x33B800FF, 32);  //just remove my remote code and add your                                          //remote hex value
+    //delay(50);
+  }
+
+  if (digitalRead(b2) == HIGH) {
+    //  delay(50);
+    irsend.sendNEC(0x33B8A05F, 32);
+  }
+
+  if (digitalRead(b3) == HIGH) {
+    //delay(50);
+    irsend.sendNEC(0x33B8609F, 32);
+  }
+
+  if (digitalRead(b4) == HIGH) {
+    //delay(50);
+    irsend.sendNEC(0x33B810EF, 32);
+  }
+  if (digitalRead(b5) == HIGH) {
+    //delay(50);
+    irsend.sendNEC(0x33B8E01F, 32);
+  }
+  else {
+    //    digitalWrite(3,LOW);
+  }
+
+}

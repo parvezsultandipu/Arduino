@@ -1,0 +1,132 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+
+const byte ROWS = 4; //four rows
+const byte COLS = 4; //three columns
+char keys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+//byte colPins[ROWS] = {5, 4, 3, 2}; //connect to the row pinouts of the keypad
+//byte rowPins[COLS] = {9, 8, 7, 6}; //connect to the column pinouts of the keypad
+byte colPins[ROWS] = {PA8, PA9, PA10, PA15}; //connect to the row pinouts of the keypad
+byte rowPins[COLS] = {PB12, PB13, PB14, PB15}; //connect to the column pinouts of the keypad
+
+Keypad lkeypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+
+LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 chars and 2 line display
+String menu[10] = {
+  "Led    ",         //0
+  "Relay  ",         //1
+  "NodeMcu",         //2
+  "Relay1 ",        //3
+  "Relay2 ",        //4
+  "Relay3 ",        //5
+  "Relay4 ",        //6
+  "Relay5 ",        //7
+  "Relay6 ",        //8
+  "Relay7 "         //9
+};
+int currentPos = 0;
+int total = 8;
+int selectedItem = 0;
+String selectedPos = ">";
+String selectedPos2 = " ";
+int s = 0;
+int o = 0;
+
+void printScreen(int currentPs);
+void setup() {
+  lcd.init();
+  lcd.backlight();
+
+}
+
+void loop() {
+  char key = lkeypad.getKey();
+
+  if (key == 'A') {
+    if (currentPos == 0) {
+      currentPos = currentPos;
+    }
+    else {
+      currentPos = currentPos - 1;
+
+    }
+  }
+  if (key == 'B') {
+    if (currentPos == total) {
+      currentPos = total;
+    }
+    else {
+      currentPos = currentPos + 1;
+    }
+
+
+  }
+  if (key == 'D') {
+
+    currentPos = 0;
+  }
+  if (key == 'C') {
+     if (currentPos == total) {
+      currentPos = total;
+    }
+
+
+    if (selectedItem > currentPos + 1) {
+      currentPos = currentPos + 1;
+    }
+    else {
+      selectedItem = selectedItem + 1;
+      if (selectedItem == currentPos) {
+        s = 1;
+      }
+      if (selectedItem == currentPos + 1) {
+        o = 1;
+      }
+      else {
+        s = 0;
+        o = 0;
+      }
+
+
+    }
+
+  }
+
+
+  printScreen(currentPos, s, o);
+
+
+
+
+
+}
+void printScreen(int currentPs, int s, int o ) {
+  String selectedPs = " ";
+  String selectedPs2 = " ";
+  if (s == 1 ) {
+    selectedPs = ">";
+
+  }
+  if (o == 1) {
+    selectedPs2 = ">";
+
+  }
+  else {
+    selectedPs = " ";
+    selectedPs2 = " ";
+  }
+  lcd.setCursor(0, 0);
+  lcd.print(String(selectedPs + menu[currentPs]));
+
+  lcd.setCursor(0, 1);
+  lcd.print(String(selectedPs2 + menu[currentPs + 1]));
+
+
+
+}

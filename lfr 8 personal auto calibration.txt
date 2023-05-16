@@ -1,0 +1,286 @@
+//after setting pins for motor driver it should be checked that the motor is working
+//forward or reverse
+#define ena 11
+#define inA 10
+#define inB 9
+#define stdnby 8
+#define inC 7
+#define inD 6
+#define enb 5
+#define trigPin_for_sonar1 13
+#define echoPin_for_sonar1 12
+
+//sensor analog value should be taken before placing it to th[] array
+int uturn = 200;
+int black_line[8];
+int white_line[8];
+void blink_times(int times);
+void blink_fast_times(int times);
+void calibration();
+int th[8] = {467, 485, 448, 406, 382, 492, 451, 429};//for pena track
+int sen_pins[8] = {A7, A6, A5, A4, A3, A2, A1, A0};
+void wheel(int lm, int rm);
+int i, sen[8], s[8], lastSensor, lastError;
+int base_L = 255;
+int base_R = 255;
+float kp = 4;
+float kd = 20;
+float ki = 1;
+void setup()
+{
+  calibration();
+  mot_init();
+  other_init();
+  sonar_init();
+}
+void calibration() {
+  for (int i = 0; i < 8; i++)
+  {
+
+    black_line[i] = analogRead(sen_pins[i]);
+  }
+  blink_fast_times(5);
+
+
+  for (int i = 0; i < 8; i++)
+  {
+    white_line[i] = analogRead(sen_pins[i]);
+  }
+
+
+  for (int i = 0; i < 8; i++)
+  {
+    th[i] =  (black_line[i] +  white_line[i]) / 2;
+  }
+  blink_times(3);
+}
+
+void blink_times(int times) {
+  for (int i = 0 ; i < times; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    delay(2000);
+  }
+}
+void blink_fast_times(int times) {
+  for (int i = 0 ; i < times; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    delay(1000);
+  }
+}
+void loop()
+{
+
+  line_follow();
+  // wheel(100, 100);
+
+  //  int my_dis = distance_from_sonar(trigPin_for_sonar1, echoPin_for_sonar1);
+  //  if (my_dis == 6 ) {
+  //    wheel(0, 0);//stop
+  //    delay(500);
+  //    wheel(100, -100);//right
+  //    delay(400);
+  //    wheel(100, 100);//forward
+  //    delay(500);
+  //    wheel(-100, 100);//left
+  //    delay(300);
+  //    wheel(100, 100);//forward
+  //    delay(500);
+  //    wheel(-100, 100);//left
+  //    delay(300);
+  //
+  //
+  //  }
+  //  else {
+  //   wheel(90, 80);
+  //   // line_follow();
+  //  }
+
+
+
+
+
+}
+
+void other_init()
+{
+  lastSensor = 0;
+  lastError = 0;
+  Serial.begin(9600);
+}
+void sonar_init() {
+  pinMode(trigPin_for_sonar1, OUTPUT);
+  pinMode(echoPin_for_sonar1, INPUT);
+}
+
+int distance_from_sonar(int trigPin_for_sonar, int echoPin_for_sonar) {
+  long duration;
+  int distance;
+  digitalWrite(trigPin_for_sonar, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin_for_sonar, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin_for_sonar, LOW);
+  duration = pulseIn(echoPin_for_sonar, HIGH);
+  distance = duration * 0.034 / 2;
+  return distance;
+
+}
+void mot_init()
+{
+  pinMode(inA, OUTPUT);
+  pinMode(inB, OUTPUT);
+  pinMode(inC, OUTPUT);
+  pinMode(inD, OUTPUT);
+  pinMode(ena, OUTPUT);
+  pinMode(enb, OUTPUT);
+  pinMode(stdnby, OUTPUT);
+  digitalWrite(stdnby, HIGH);
+  digitalWrite(inA, HIGH);
+  digitalWrite(inB, HIGH);
+  digitalWrite(inC, HIGH);
+  digitalWrite(inD, HIGH);
+
+}
+
+void wheel(int lm, int rm)
+{
+  if (lm == 0)
+  {
+    digitalWrite(inC, HIGH);
+    digitalWrite(inD, HIGH);
+  }
+  if (lm > 0)
+  {
+    digitalWrite(inC, LOW);
+    digitalWrite(inD, HIGH);
+  }
+  else if (lm < 0)
+  {
+    digitalWrite(inC, HIGH);
+    digitalWrite(inD, LOW);
+  }
+
+
+  if (rm == 0)
+  {
+    digitalWrite(inA, HIGH);
+    digitalWrite(inB, HIGH);
+  }
+  if (rm > 0)
+  {
+    digitalWrite(inA, LOW);
+    digitalWrite(inB, HIGH);
+  }
+  else if (rm < 0)
+  {
+    digitalWrite(inA, HIGH);
+    digitalWrite(inB, LOW);
+  }
+  if (lm > 254) lm = 254;
+  if (lm < -254) lm = -254;
+  if (rm > 254) rm = 254;
+  if (rm < -254) rm = -254;
+
+  analogWrite(ena, abs(rm));
+  analogWrite(enb, abs(lm));
+
+}
+
+int readSensor()
+{
+  for (i = 0; i < 8; i++)
+  {
+    sen[i] = analogRead(sen_pins[i]);
+    if (sen[i] < th[i])
+    {
+      s[i] = 1;
+    }
+    else {
+      s[i] = 0;
+    }
+  }
+  //  for (i = 0; i < 8; i++)
+  //  {
+  //
+  //    Serial.print(s[i]);
+  //    Serial.print(" ");
+  //
+  //  }
+  //  Serial.println(" ");
+
+  int error, sum;
+  sum = s[0] + s[1] + s[2] + s[3] + s[4] + s[5] + s[6] + s[7];
+
+  if (sum != 0)
+  {
+    error = (s[0] * 10 + s[1] * 20 + s[2] * 30 + s[3] * 40 + s[4] * 50 + s[5] * 60 + s[6] * 70 + s[7] * 80) / sum - 40;
+  }
+  else
+  {
+    error = 420;
+  }
+
+  if (s[0] == 1) lastSensor = 1;
+  else if (s[7] == 1) lastSensor = 2;
+  Serial.print(0);
+  Serial.print(",");
+  Serial.println(error);
+  return error;
+}
+
+
+void line_follow()
+{
+  int error, corr, final_l, final_r;
+  float p, d, I = 0;
+  error = readSensor();
+  if (error == 420)
+  {
+    if (lastSensor == 1) {
+      wheel(-uturn, uturn);
+    }
+    else if (lastSensor == 2) {
+      wheel(uturn, -uturn);
+    }
+  }
+  else
+  {
+    p = kp * error;
+    d = kd * (error - lastError);
+    I = ki * (I + error);
+    corr = p + d + I;
+    //    Serial.print(corr);
+    final_l = base_L + corr;
+    final_r = base_R - corr;
+    if (final_l < 0)final_l = 0;
+    if (final_r < 0) final_r = 0;
+
+
+    wheel(final_l, final_r );
+    if ((error - lastError) != 0) delay(5);
+    lastError = error;
+  }
+
+}
